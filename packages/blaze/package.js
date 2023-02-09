@@ -17,7 +17,9 @@ Package.onUse(function (api) {
   api.use('tracker@1.2.0');
   api.use('check@1.3.1');
   api.use('observe-sequence@1.0.16');
+  api.use('random@1.0.10');
   api.use('reactive-var@1.0.11');
+  api.use('reactive-dict@1.3.0');
   api.use('ordered-dict@1.1.0');
   api.use('ecmascript@0.15.1');
 

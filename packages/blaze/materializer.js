@@ -14,6 +14,7 @@
 //   task).
 //
 // Returns `intoArray`, which is especially useful if you pass in `[]`.
+
 Blaze._materializeDOM = function (htmljs, intoArray, parentView,
                                   _existingWorkStack) {
   // In order to use fewer stack frames, materializeDOMInner can push
@@ -70,8 +71,18 @@ var materializeDOMInner = function (htmljs, intoArray, parentView, workStack) {
       }
     } else if (HTML.isArray(htmljs)) {
       for (var i = htmljs.length-1; i >= 0; i--) {
-        workStack.push(Blaze._bind(Blaze._materializeDOM, null,
-                              htmljs[i], intoArray, parentView, workStack));
+        htmljs[i] = parentView.reactiveDict.get(i) ? parentView.reactiveDict.get(i) : htmljs[i]
+
+        if (htmljs[i] instanceof Promise) {
+          htmljs[i].then(val => {
+            parentView.reactiveDict.set(i, val)
+          })
+          htmljs[i] = null;
+          continue
+        }
+
+        const el = Blaze._bind(Blaze._materializeDOM, null, htmljs[i], intoArray, parentView, workStack)
+        workStack.push(el);
       }
       return;
     } else {
@@ -122,8 +133,9 @@ var materializeTag = function (tag, parentView, workStack) {
   }
 
   if (rawAttrs) {
+    const reactiveDict = new ReactiveDict(Random.id())
     var attrUpdater = new ElementAttributesUpdater(elem);
-    var updateAttributes = function () {
+    var updateAttributes = async function () {
       var expandedAttrs = Blaze._expandAttributes(rawAttrs, parentView);
       var flattenedAttrs = HTML.flattenAttributes(expandedAttrs);
       var stringAttrs = {};
@@ -133,10 +145,21 @@ var materializeTag = function (tag, parentView, workStack) {
         // stringify anything else (e.g. strings, booleans, numbers including 0).
         if (flattenedAttrs[attrName] == null || flattenedAttrs[attrName] === false)
           stringAttrs[attrName] = null;
-        else
-          stringAttrs[attrName] = Blaze._toText(flattenedAttrs[attrName],
+        else {
+          stringAttrs[attrName] = reactiveDict.get(attrName) ? reactiveDict.get(attrName) : stringAttrs[attrName]
+
+          if (stringAttrs[attrName] instanceof Promise) {
+            stringAttrs[attrName].then(val => {
+              reactiveDict.set(attrName, val)
+            })
+            stringAttrs[attrName] = null;
+            return
+          }
+
+          stringAttrs[attrName] = await Blaze._toText(flattenedAttrs[attrName],
                                                 parentView,
                                                 HTML.TEXTMODE.STRING);
+          }
       }
       attrUpdater.update(stringAttrs);
     };
