@@ -33,6 +33,7 @@ export class ReactiveDict {
   constructor(dictName, dictData) {
     // this.keys: key -> value
     this.keys = {};
+    this.promiseKeys = {};
 
     if (dictName) {
       // name given; migration will be performed
@@ -81,7 +82,7 @@ export class ReactiveDict {
    * @param {String} key The key to set, eg, `selectedItem`
    * @param {EJSONable | undefined} value The new value for `key`
    */
-  set(keyOrObject, value) {
+  set_old(keyOrObject, value) {
     if ((typeof keyOrObject === 'object') && (value === undefined)) {
       // Called as `dict.set({...})`
       this._setObject(keyOrObject);
@@ -115,6 +116,79 @@ export class ReactiveDict {
       }
     }
   }
+
+  /**
+   * If a Promise is passed, trigger invalidation as soon as Promise is resolved.
+   *
+   * Attention: Unfortunately, ReactiveDict Values cannot be Objects at the moment.
+   * Maybe we can work around that?
+   */
+  set = function (keyOrObject, value) {
+    if ((typeof keyOrObject === 'object') && (value === undefined)) {
+      // Called as `dict.set({...})`
+      this._setObject(keyOrObject);
+      return;
+    }
+    // the input isn't an object, so it must be a key
+    // and we resume with the rest of the function
+    const key = keyOrObject;
+
+    // value might be a Promise
+    if (value instanceof Promise) {
+      const keyExisted = hasOwn.call(this.keys, key);
+      const oldPromise = keyExisted ? this.promiseKeys[key] : undefined;
+      const isNewPromise = (value !== oldPromise);
+
+      value.then((val) => {
+        const keyExisted = hasOwn.call(this.keys, key);
+        const oldSerializedValue = keyExisted ? this.keys[key] : 'undefined';
+        const isNewValue = (val !== oldSerializedValue);
+
+        this.keys[key] = val;
+
+        if (isNewValue || !keyExisted) {
+          // Using the changed utility function here because this.allDeps might not exist yet,
+          // when setting initial data from constructor
+          changed(this.allDeps);
+        }
+
+        // Don't trigger changes when setting initial data from constructor,
+        // this.KeyDeps is undefined in this case
+        if (isNewValue && this.keyDeps) {
+          changed(this.keyDeps[key]);
+          if (this.keyValueDeps[key]) {
+            changed(this.keyValueDeps[key][oldSerializedValue]);
+            changed(this.keyValueDeps[key][val]);
+          }
+        }
+      });
+    } else {
+      value = stringify(value);
+
+      const keyExisted = hasOwn.call(this.keys, key);
+      const oldSerializedValue = keyExisted ? this.keys[key] : 'undefined';
+      const isNewValue = (value !== oldSerializedValue);
+
+      this.keys[key] = value;
+
+      if (isNewValue || !keyExisted) {
+        // Using the changed utility function here because this.allDeps might not exist yet,
+        // when setting initial data from constructor
+        changed(this.allDeps);
+      }
+
+      // Don't trigger changes when setting initial data from constructor,
+      // this.KeyDeps is undefined in this case
+      if (isNewValue && this.keyDeps) {
+        changed(this.keyDeps[key]);
+        if (this.keyValueDeps[key]) {
+          changed(this.keyValueDeps[key][oldSerializedValue]);
+          changed(this.keyValueDeps[key][value]);
+        }
+      }
+    }
+  };
+
 
   /**
    * @summary Set a value for a key if it hasn't been set before.

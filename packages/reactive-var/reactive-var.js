@@ -1,3 +1,5 @@
+import isEqual from 'lodash.isequal';
+
 /*
  * ## [new] ReactiveVar(initialValue, [equalsFunc])
  *
@@ -27,7 +29,7 @@
  */
 
 /**
- * @class 
+ * @class
  * @instanceName reactiveVar
  * @summary Constructor for a ReactiveVar, which represents a single reactive variable.
  * @locus Client
@@ -71,7 +73,7 @@ ReactiveVar.prototype.get = function () {
  * @locus Client
  * @param {Any} newValue
  */
-ReactiveVar.prototype.set = function (newValue) {
+ReactiveVar.prototype.set_old = function (newValue) {
   var oldValue = this.curValue;
 
   if ((this.equalsFunc || ReactiveVar._isEqual)(oldValue, newValue))
@@ -80,6 +82,35 @@ ReactiveVar.prototype.set = function (newValue) {
 
   this.curValue = newValue;
   this.dep.changed();
+};
+
+/**
+ * If a Promise is passed, trigger dependency invalidation as soon as Promise resolves. 
+ */
+ReactiveVar.prototype.set = function (newValue) {
+
+    // newValue might be a Promise
+    if (newValue instanceof Promise) {
+        newValue.then((val) => {
+            var oldValue = this.curValue;
+
+            if ((this.equalsFunc || ReactiveVar._isEqual)(oldValue, val) || isEqual(oldValue, val))
+                // value is same as last time
+                return;
+
+            this.curValue = val;
+            this.dep.changed();
+        });
+    } else {
+        var oldValue = this.curValue;
+
+        if ((this.equalsFunc || ReactiveVar._isEqual)(oldValue, newValue))
+            // value is same as last time
+            return;
+
+        this.curValue = newValue;
+        this.dep.changed();
+    }
 };
 
 ReactiveVar.prototype.toString = function () {
