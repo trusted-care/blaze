@@ -1,3 +1,11 @@
+## v3.0.0, 2023-XXXX-XX
+
+### Potentially breaking changes
+* [#373](https://github.com/meteor/blaze/pull/373) Remove fibers from codebase
+* [#378](https://github.com/meteor/blaze/pull/378) [spacebars-compiler] Update uglify-js to 3.16.1
+* [#351](https://github.com/meteor/blaze/pull/351) Eliminate whitespace in Template.dynamic
+* [#334](https://github.com/meteor/blaze/pull/334) Faster fragnent parsing by retaining a reference to the current document context
+
 ## v2.6.1, 2022-July-25
 
 * [#370](https://github.com/meteor/blaze/pull/370) `templating-runtime@1.6.1`, returned the `Template.__define__` with warning message
