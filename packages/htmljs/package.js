@@ -1,6 +1,7 @@
+/* eslint-env meteor */
 Package.describe({
   name: 'htmljs',
-  summary: "Small library for expressing HTML trees",
+  summary: 'Small library for expressing HTML trees',
   version: '2.0.0-alpha300.5',
   git: 'https://github.com/meteor/blaze.git'
 });
@@ -19,6 +20,6 @@ Package.onTest(function (api) {
   api.use('htmljs');
 
   api.addFiles([
-    'htmljs_test.js'
+    'htmljs_test.js',
   ]);
 });

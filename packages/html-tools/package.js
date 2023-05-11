@@ -1,6 +1,7 @@
+/* eslint-env meteor */
 Package.describe({
   name: 'html-tools',
-  summary: "Standards-compliant HTML tools",
+  summary: 'Standards-compliant HTML tools',
   version: '2.0.0-alpha300.5',
   git: 'https://github.com/meteor/blaze.git'
 });
@@ -25,6 +26,6 @@ Package.onTest(function (api) {
   api.addFiles([
     'charref_tests.js',
     'tokenize_tests.js',
-    'parse_tests.js'
+    'parse_tests.js',
   ]);
 });
