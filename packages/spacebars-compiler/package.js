@@ -1,20 +1,20 @@
 Package.describe({
   name: 'spacebars-compiler',
   summary: "Compiler for Spacebars template language",
-  version: '1.3.1',
+  version: '2.0.0-alpha300.5',
   git: 'https://github.com/meteor/blaze.git'
 });
 
 Npm.depends({
-  'uglify-js': '2.7.5'
+  'uglify-js': '3.16.1'
 });
 
 Package.onUse(function (api) {
-  api.use('ecmascript@0.15.1');
+  api.use('ecmascript@1.0.0-alpha300.5');
 
-  api.use('htmljs@1.1.1');
-  api.use('html-tools@1.1.3');
-  api.use('blaze-tools@1.1.3');
+  api.use('htmljs@2.0.0-alpha300.5');
+  api.use('html-tools@2.0.0-alpha300.5');
+  api.use('blaze-tools@2.0.0-alpha300.5');
 
   api.export('SpacebarsCompiler');
 
